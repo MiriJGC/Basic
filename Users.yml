@@ -1,0 +1,10 @@
+---
+- name: Create user
+  hosts: loadbalancers
+  become: true
+  become_user: admin-ansible3
+  vars:
+    - user: admin-ansible3
+    - password: vagrant
+  roles:
+    - role: user

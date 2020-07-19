@@ -1,0 +1,39 @@
+---
+- name: Python
+  apt: name=python state=present
+
+- name: Ensure HAProxy is installed.
+  apt: name=haproxy state=present
+
+- name: Ensure HAProxy is enabled
+  lineinfile:
+    dest: /etc/default/haproxy
+    regexp: "^ENABLED.+$"
+    line: "ENABLED=1"
+    state: present
+
+- name: Directory
+  file:
+    path: /etc/backup.haproxy/ 
+    state: directory
+
+- name: Backup
+  shell:
+    cmd: cp /etc/haproxy/haproxy.cfg /etc/backup.haproxy && cp /root/files/* /root/backup
+
+- name: Controlled copy
+  block:
+    - template:
+       src: haproxy.cfg.j2
+       dest: /etc/haproxy/haproxy.cfg
+       mode: 0644
+    - service: name=haproxy state=restarted
+  rescue:
+    - name: Recover haproxy.cfg
+      shell:
+        cmd: yes | cp /etc/backup.haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg
+    - name: Start service
+      service: name=haproxy state=started
+  always:
+    - name: Ensure HAProxy is started and enabled on boot.
+      service: name=haproxy state=started enabled=yes

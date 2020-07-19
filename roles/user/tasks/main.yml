@@ -1,0 +1,30 @@
+---
+- name: Adding user {{ user }}  
+  user:
+    name: "{{ user }}"
+    shell: /bin/bash
+    password: "{{ password | password_hash('sha512') }}"
+    append: yes
+    groups: sudo
+    update_password: always
+
+- name: Add pip
+  become: yes
+  become_user: "{{ user }}"
+  become_method: sudo
+  apt: name=python-pexpect state=present
+
+- name: Become
+  expect:
+    command: sudo su
+    responses:    
+      (.*)[sudo] password for "{{ user }}"(.*): "{{ password }}"
+
+- name: sudoers
+  lineinfile:
+    dest: /etc/sudoers
+    insertafter: "#includedir /etc/sudoers.d"
+    regexp: "{{ user }}?"
+    line: "{{ user }}    ALL=(ALL) NOPASSWD:ALL"
+    state: present
+

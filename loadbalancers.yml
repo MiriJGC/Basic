@@ -1,0 +1,7 @@
+---
+- name: Load balancer playbook
+  hosts: loadbalancers
+  user: root
+  become: yes
+  roles:
+    - role: haproxy
